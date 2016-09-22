@@ -1,0 +1,72 @@
+--- src/main/hwvideo/hwsprites.cpp
++++ src/main/hwvideo/hwsprites.cpp
+@@ -225,15 +225,25 @@
+                         uint32_t pixels = sprites[spritedata + ++ramBuff[data+7]]; // Add to base sprite data the vzoom value
+ 
+                         // draw four pixels
+-                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-
++ if (shadow) {
++                            pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++ } else {
++                            pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;  x += xdelta; xacc += hzoom; } xacc -= 0x200;
++ }
+                         // stop if the second-to-last pixel in the group was 0xf
+                         if ((pixels & 0x000000f0) == 0x000000f0)
+                             break;
+@@ -250,15 +260,25 @@
+                         uint32_t pixels = sprites[spritedata + --ramBuff[data+7]];
+ 
+                         // draw four pixels
+-                        pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-                        pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
+-
++ if (shadow) {
++                            pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { draw_pixel(x, pix, color, shadow, pPixel+x); x += xdelta; xacc += hzoom; } xacc -= 0x200;
++ } else {
++                            pix = (pixels >>  0) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  4) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >>  8) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 12) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 16) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 20) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 24) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff;x += xdelta; xacc += hzoom; } xacc -= 0x200;
++                            pix = (pixels >> 28) & 0xf; while (xacc < 0x200) { if (x >= x1 && x < x2 && pix != 0 && pix != 15) *(pPixel+x) = (pix | color | COLOR_BASE) & 0xfff; x += xdelta; xacc += hzoom; } xacc -= 0x200;
++ }
+                         // stop if the second-to-last pixel in the group was 0xf
+                         if ((pixels & 0x0f000000) == 0x0f000000)
+                             break;
