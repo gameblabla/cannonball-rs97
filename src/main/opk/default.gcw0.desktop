@@ -7,4 +7,5 @@ Icon=icon
 Terminal=false
 Categories=emulators;
 X-OD-NeedsDownscaling=false
+X-OD-NeedsJoystick=false
 

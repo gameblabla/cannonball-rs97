@@ -2,28 +2,13 @@
 #pragma once
 #include "SDL_video.h"
 
-#ifdef NSPIRE
-const static char* FILENAME_CONFIG = "./config.xml.tns";
-const static char* FILENAME_SCORES = "./hiscores.tns";
-const static char* FILENAME_TTRIAL = "./hiscores_timetrial.tns";
-const static char* FILENAME_CONT   = "./hiscores_continuous.tns";
+extern char FILENAME_CONFIG[256];
+extern char FILENAME_SCORES[256];
+extern char FILENAME_TTRIAL[256];
+extern char FILENAME_CONT[256];
+/*
+const static char* FILENAME_CONFIG = "config.xml";
+char* FILENAME_SCORES = "hiscores";
+char* FILENAME_TTRIAL = "hiscores_timetrial";
+char* FILENAME_CONT   = "hiscores_continuous";*/
 const static int SDL_FLAGS = SDL_SWSURFACE;
-#endif
-
-#if defined(GCW)
-const static char* FILENAME_CONFIG = "/media/data/local/home/.cannonball/config.xml";
-const static char* FILENAME_SCORES = "/media/data/local/home/.cannonball/hiscores";
-const static char* FILENAME_TTRIAL = "/media/data/local/home/.cannonball/hiscores_timetrial";
-const static char* FILENAME_CONT   = "/media/data/local/home/.cannonball/hiscores_continuous";
-const static int SDL_FLAGS = SDL_HWSURFACE;
-#endif
-
-#if !defined(GCW) && !defined(NSPIRE)
-const static char* FILENAME_CONFIG = "./config.xml";
-const static char* FILENAME_SCORES = "./hiscores";
-const static char* FILENAME_TTRIAL = "./hiscores_timetrial";
-const static char* FILENAME_CONT   = "./hiscores_continuous";
-const static int SDL_FLAGS = SDL_SWSURFACE | SDL_DOUBLEBUF;
-#endif
-
-    

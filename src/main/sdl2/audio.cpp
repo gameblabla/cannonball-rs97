@@ -16,7 +16,13 @@
 
 #include <iostream>
 #include <SDL.h>
+
+#ifdef SDL2
+#include "sdl2/audio.hpp"
+#else
 #include "sdl/audio.hpp"
+#endif
+
 #include "frontend/config.hpp" // fps
 #include "engine/audio/osoundint.hpp"
 
@@ -59,11 +65,32 @@ void Audio::start_audio()
 {
     if (!sound_enabled)
     {
-        if(SDL_Init(SDL_INIT_AUDIO) == -1) 
-        {
-            std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
-            return;
-        }
+        // Since many GNU/Linux distros are infected with PulseAudio, SDL2 could chose PA as first
+	// driver option before ALSA, and PA doesn't obbey our sample number requests, resulting
+	// in audio gaps, if we're on a GNU/Linux we force ALSA.
+	// Else we accept whatever SDL2 wants to give us or what the user specifies on SDL_AUDIODRIVER
+	// enviroment variable.
+	std::string platform = SDL_GetPlatform();
+	if (platform=="Linux"){
+
+	    if (SDL_InitSubSystem(SDL_INIT_AUDIO)!=0) {
+
+		std::cout << "Error initalizing audio subsystem: " << SDL_GetError() << std::endl;
+	    }
+
+	    if (SDL_AudioInit("alsa")!=0) {
+		std::cout << "Error initalizing audio using ALSA: " << SDL_GetError() << std::endl;
+		return;
+	    }
+
+	}
+	else {
+	    if(SDL_Init(SDL_INIT_AUDIO) == -1) 
+	    {
+		std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
+		return;
+	    }		
+	}
 
         // SDL Audio Properties
         SDL_AudioSpec desired, obtained;
@@ -74,18 +101,20 @@ void Audio::start_audio()
         desired.samples  = SAMPLES;
         desired.callback = fill_audio;
         desired.userdata = NULL;
-
-        if (SDL_OpenAudio(&desired, &obtained) == -1)
-        {
-            std::cout << "Error initalizing audio: " << SDL_GetError() << std::endl;
+	
+	// SDL2 block
+	dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, /*SDL_AUDIO_ALLOW_FORMAT_CHANGE*/0);
+	if (dev == 0)
+	{
+            std::cout << "Error opening audio device: " << SDL_GetError() << std::endl;
             return;
         }
 
-        if (desired.samples != obtained.samples)
-        {
-            std::cout << "Error initalizing audio: sample rate not supported." << std::endl;
-            return;
-        }
+        if (desired.samples != obtained.samples) {
+            std::cout << "Error initalizing audio: number of samples not supported." << std::endl
+                      << "Please compare desired vs obtained. Look at what audio driver SDL2 is using." << std::endl;
+	    return;
+	}
 
         bytes_per_sample = CHANNELS * (BITS / 8);
 
@@ -106,7 +135,7 @@ void Audio::start_audio()
         clear_buffers();
         clear_wav();
 
-        SDL_PauseAudio(0);
+        SDL_PauseAudioDevice(dev,0);
     }
 }
 
@@ -134,8 +163,8 @@ void Audio::stop_audio()
     {
         sound_enabled = false;
 
-        SDL_PauseAudio(1);
-        SDL_CloseAudio();
+        SDL_PauseAudioDevice(dev,1);
+        SDL_CloseAudioDevice(dev);
 
         delete[] dsp_buffer;
         delete[] mix_buffer;
@@ -146,7 +175,7 @@ void Audio::pause_audio()
 {
     if (sound_enabled)
     {
-        SDL_PauseAudio(1);
+        SDL_PauseAudioDevice(dev,1);
     }
 }
 
@@ -155,7 +184,7 @@ void Audio::resume_audio()
     if (sound_enabled)
     {
         clear_buffers();
-        SDL_PauseAudio(0);
+        SDL_PauseAudioDevice(dev,0);
     }
 }
 
@@ -318,7 +347,7 @@ void Audio::load_wav(const char* filename)
 
         // Halve Volume Of Wav File
         uint8_t* data_vol = new uint8_t[length];
-        SDL_MixAudio(data_vol, data, length, SDL_MIX_MAXVOLUME / 2);
+	SDL_MixAudioFormat(data_vol, data, wave.format, length, SDL_MIX_MAXVOLUME / 2);
 
         // WAV File Needs Conversion To Target Format
         if (wave.format != AUDIO_S16 || wave.channels != 2 || wave.freq != FREQ)

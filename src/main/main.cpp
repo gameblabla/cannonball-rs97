@@ -5,29 +5,30 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 // Error reporting
 #include <iostream>
 
 // SDL Library
 #include <SDL.h>
+#ifndef SDL2
 #pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
+#endif
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "glu32.lib")
 
-#ifdef NSPIRE
-	#include <os.h>
-#endif
-
-#if defined(GCW)
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
-
-
 // SDL Specific Code
+#if defined SDL2
+#include "sdl2/timer.hpp"
+#include "sdl2/input.hpp"
+#else
 #include "sdl/timer.hpp"
 #include "sdl/input.hpp"
+#endif
+
 #include "video.hpp"
 
 #include "romloader.hpp"
@@ -51,11 +52,18 @@
 // Initialize Shared Variables
 using namespace cannonball;
 
+char FILENAME_CONFIG[256];
+char FILENAME_SCORES[256];
+char FILENAME_TTRIAL[256];
+char FILENAME_CONT[256];
+
 int    cannonball::state       = STATE_BOOT;
 double cannonball::frame_ms    = 0;
 int    cannonball::frame       = 0;
 bool   cannonball::tick_frame  = true;
 int    cannonball::fps_counter = 0;
+
+char configload[128], ttrialload[128], contload[128], scoresload[128];
 
 #ifdef COMPILE_SOUND_CODE
 Audio cannonball::audio;
@@ -73,9 +81,7 @@ static void quit_func(int code)
     forcefeedback::close();
     delete menu;
     SDL_Quit();
-#ifndef DREAMCAST
     exit(code);
-#endif
 }
 
 static void process_events(void)
@@ -98,7 +104,7 @@ static void process_events(void)
             case SDL_KEYUP:
                 input.handle_key_up(&event.key.keysym);
                 break;
-#ifndef NSPIRE
+
             case SDL_JOYAXISMOTION:
                 input.handle_joy_axis(&event.jaxis);
                 break;
@@ -110,7 +116,7 @@ static void process_events(void)
             case SDL_JOYBUTTONUP:
                 input.handle_joy_up(&event.jbutton);
                 break;
-#endif
+
             case SDL_QUIT:
                 // Handle quit requests (like Ctrl-c).
                 state = STATE_QUIT;
@@ -269,41 +275,28 @@ static void main_loop()
 
 int main(int argc, char* argv[])
 {
-	
-#ifdef NSPIRE
-	enable_relative_paths(argv);
-	SDL_Init(SDL_INIT_VIDEO);
-#else
     // Initialize timer and video systems
     if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
     { 
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1; 
     }
-#endif
-
-#if defined(GCW)
-	char *homeDir = NULL;
+    
+	char homedir[128];
+	snprintf(homedir, sizeof(homedir), "%s/.cannonball", getenv("HOME"));
+	mkdir(homedir, 0755); // create $HOME/.cannonball if it doesn't exist
+	snprintf(homedir, sizeof(homedir), "%s/.cannonball/roms", getenv("HOME"));
+	mkdir(homedir, 0755); // create $HOME/.cannonball if it doesn't exist
 	
-	if(homeDir != NULL)
-	{
-		free(homeDir);
-		homeDir = NULL;
-	}
-
-	homeDir = (char *)malloc(strlen(getenv("HOME")) + strlen("/.cannonball") + 1);
-	strcpy(homeDir, getenv("HOME"));
-	strcat(homeDir, "/.cannonball");
-	mkdir(homeDir, 0755); // create $HOME/.cannonball if it doesn't exist
-#endif
-
+	snprintf(FILENAME_CONFIG, sizeof(FILENAME_CONFIG), "%s/.cannonball/%s", getenv("HOME"), "config.xml");
+	snprintf(FILENAME_SCORES, sizeof(FILENAME_SCORES), "%s/.cannonball/%s", getenv("HOME"), "hiscores");
+	snprintf(FILENAME_TTRIAL, sizeof(FILENAME_TTRIAL), "%s/.cannonball/%s", getenv("HOME"), "hiscores_timetrial");
+	snprintf(FILENAME_CONT, sizeof(FILENAME_CONT), "%s/.cannonball/%s", getenv("HOME"), "hiscores_continuous");
+	
     menu = new Menu(&cannonboard);
 
     bool loaded = false;
 
-#if defined(NSPIRE) || defined(DREAMCAST) || defined(GCW)
-	loaded = roms.load_revb_roms();
-#else
     // Load LayOut File
     if (argc == 3 && strcmp(argv[1], "-file") == 0)
     {
@@ -315,21 +308,6 @@ int main(int argc, char* argv[])
     {
         loaded = roms.load_revb_roms();
     }
-#endif
-
-#ifdef NSPIRE
-	if (!loaded)
-	{
-		show_msgbox("Cannonball", "ROM LOADING FAILURE QUITTING");
-	}
-#endif
-
-#ifdef GCW
-	if (!loaded)
-	{
-		printf("FAILED TO LOAD ROMS \n");
-	}
-#endif
 
     //trackloader.set_layout_track("d:/temp.bin");
     //loaded = roms.load_revb_roms();
@@ -347,8 +325,10 @@ int main(int argc, char* argv[])
         if (!omusic.load_widescreen_map())
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
+#ifndef SDL2
         //Set the window caption 
         SDL_WM_SetCaption( "Cannonball", NULL ); 
+#endif
 
         // Initialize SDL Video
         if (!video.init(&roms, &config.video))

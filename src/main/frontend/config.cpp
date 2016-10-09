@@ -22,6 +22,16 @@
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
 
+extern char configload[128], ttrialload[128], contload[128], scoresload[128];
+
+// api change in boost 1.56
+#include <boost/version.hpp>
+#if (BOOST_VERSION >= 105600)
+typedef boost::property_tree::xml_writer_settings<std::string> xml_writer_settings;
+#else
+typedef boost::property_tree::xml_writer_settings<char> xml_writer_settings;
+#endif
+
 Config config;
 
 Config::Config(void)
@@ -48,8 +58,6 @@ void Config::load(const std::string &filename)
     // No namespace qualification is needed, because of Koenig 
     // lookup on the second argument. If reading fails, exception
     // is thrown.
-    
-#ifndef DREAMCAST
     try
     {
         read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
@@ -58,7 +66,6 @@ void Config::load(const std::string &filename)
     {
         std::cout << "Error: " << e.what() << "\n";
     }
-#endif
 
     // ------------------------------------------------------------------------
     // Menu Settings
@@ -70,14 +77,11 @@ void Config::load(const std::string &filename)
     // ------------------------------------------------------------------------
     // Video Settings
     // ------------------------------------------------------------------------
+   
     video.mode       = pt_config.get("video.mode",               0); // Video Mode: Default is Windowed 
-    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 2x    
+    video.scale      = pt_config.get("video.window.scale",       1); // Video Scale: Default is 1x    
     video.scanlines  = pt_config.get("video.scanlines",          0); // Scanlines
-#ifdef GCW
     video.fps        = pt_config.get("video.fps",                0); // Default is 30 fps
-#else
-    video.fps        = pt_config.get("video.fps",                1); // Default is 60 fps
-#endif
     video.fps_count  = pt_config.get("video.fps_counter",        0); // FPS Counter
     video.widescreen = pt_config.get("video.widescreen",         0); // Enable Widescreen Mode
     video.hires      = pt_config.get("video.hires",              0); // Hi-Resolution Mode
@@ -119,37 +123,19 @@ void Config::load(const std::string &filename)
     controls.gear          = pt_config.get("controls.gear", 0);
     controls.steer_speed   = pt_config.get("controls.steerspeed", 3);
     controls.pedal_speed   = pt_config.get("controls.pedalspeed", 4);
-#ifdef GCW
-
-    controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
-    controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
-    controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);
-    controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 275);
-    controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   306);
-    controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 308);
-    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear1", 32);
+    
+    controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    1073741906);
+    controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  1073741905);
+    controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  1073741904);
+    controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 1073741903);
+    controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   1073742048);
+    controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 1073742050);
+    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear1", 1073742049);
     controls.keyconfig[7]  = pt_config.get("controls.keyconfig.gear2", 32);
     controls.keyconfig[8]  = pt_config.get("controls.keyconfig.start", 13);
-    controls.keyconfig[9]  = pt_config.get("controls.keyconfig.coin",  304);
+    controls.keyconfig[9]  = pt_config.get("controls.keyconfig.coin",  32);
     controls.keyconfig[10] = pt_config.get("controls.keyconfig.menu",  9);
     controls.keyconfig[11] = pt_config.get("controls.keyconfig.view",  8);
-
-#else
-
-    controls.keyconfig[0]  = pt_config.get("controls.keyconfig.up",    273);
-    controls.keyconfig[1]  = pt_config.get("controls.keyconfig.down",  274);
-    controls.keyconfig[2]  = pt_config.get("controls.keyconfig.left",  276);
-    controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 275);
-    controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   122);
-    controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 120);
-    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear1", 32);
-    controls.keyconfig[7]  = pt_config.get("controls.keyconfig.gear2", 32);
-    controls.keyconfig[8]  = pt_config.get("controls.keyconfig.start", 49);
-    controls.keyconfig[9]  = pt_config.get("controls.keyconfig.coin",  53);
-    controls.keyconfig[10] = pt_config.get("controls.keyconfig.menu",  286);
-    controls.keyconfig[11] = pt_config.get("controls.keyconfig.view",  304);
-    
-#endif
     
     controls.padconfig[0]  = pt_config.get("controls.padconfig.acc",   0);
     controls.padconfig[1]  = pt_config.get("controls.padconfig.brake", 1);
@@ -263,22 +249,15 @@ bool Config::save(const std::string &filename)
     ttrial.traffic = pt_config.get("time_trial.traffic", 3);
     cont_traffic   = pt_config.get("continuous.traffic", 3);
 
-
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
-
-#ifndef DREAMCAST
     try
     {
-        write_xml(filename, pt_config, std::locale(), settings);
+        write_xml(filename, pt_config, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
         std::cout << "Error saving config: " << e.what() << "\n";
         return false;
     }
-#endif
-    
     return true;
 }
 
@@ -287,21 +266,15 @@ void Config::load_scores(const std::string &filename)
     // Create empty property tree object
     ptree pt;
 
-#ifndef DREAMCAST
     try
     {
-#ifdef NSPIRE
-        read_xml(engine.jap ? filename + "_jap.xml.tns" : filename + ".xml.tns" , pt, boost::property_tree::xml_parser::trim_whitespace);
-#else
         read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
-#endif
     }
     catch (std::exception &e)
     {
         e.what();
         return;
     }
-#endif
     
     // Game Scores
     for (int i = 0; i < ohiscore.NO_SCORES; i++)
@@ -344,28 +317,21 @@ void Config::save_scores(const std::string &filename)
         pt.put(xmltag + ".time",     Utils::to_hex_string(e->time));
     }
     
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
-   
-#ifndef DREAMCAST
     try
     {
-#ifdef NSPIRE
-        write_xml(engine.jap ? filename + "_jap.xml.tns" : filename + ".xml.tns", pt, std::locale(), settings);
-#else
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
-#endif
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
         std::cout << "Error saving hiscores: " << e.what() << "\n";
     }
-#endif
 }
 
 void Config::load_tiletrial_scores()
 {
-    const std::string filename = FILENAME_TTRIAL;
+	//const std::string filename = FILENAME_TTRIAL;
+	std::string filename;
+	filename = ttrialload;
 
     // Counter value that represents 1m 15s 0ms
     static const uint16_t COUNTER_1M_15 = 0x11D0;
@@ -373,14 +339,9 @@ void Config::load_tiletrial_scores()
     // Create empty property tree object
     ptree pt;
 
-#ifndef DREAMCAST
     try
     {
-#ifdef NSPIRE
-        read_xml(engine.jap ? filename + "_jap.xml.tns" : filename + ".xml.tns" , pt, boost::property_tree::xml_parser::trim_whitespace);
-#else
         read_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml" , pt, boost::property_tree::xml_parser::trim_whitespace);
-#endif
     }
     catch (std::exception &e)
     {
@@ -390,7 +351,6 @@ void Config::load_tiletrial_scores()
         e.what();
         return;
     }
-#endif
 
     // Time Trial Scores
     for (int i = 0; i < 15; i++)
@@ -401,7 +361,10 @@ void Config::load_tiletrial_scores()
 
 void Config::save_tiletrial_scores()
 {
-    const std::string filename = FILENAME_TTRIAL;
+	std::string filename;
+	filename = ttrialload;
+	
+    //const std::string filename = FILENAME_TTRIAL;
 
     // Create empty property tree object
     ptree pt;
@@ -412,23 +375,14 @@ void Config::save_tiletrial_scores()
         pt.put("time_trial.score" + Utils::to_string(i), ttrial.best_times[i]);
     }
 
-    // Tab space 1
-    boost::property_tree::xml_writer_settings<char> settings('\t', 1);
- 
-#ifndef DREAMCAST
     try
     {
-#ifdef NSPIRE
-        write_xml(engine.jap ? filename + "_jap.xml.tns" : filename + ".xml.tns", pt, std::locale(), settings);
-#else
-        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), settings);
-#endif
+        write_xml(engine.jap ? filename + "_jap.xml" : filename + ".xml", pt, std::locale(), xml_writer_settings('\t', 1)); // Tab space 1
     }
     catch (std::exception &e)
     {
         std::cout << "Error saving hiscores: " << e.what() << "\n";
     }
-#endif
 }
 
 bool Config::clear_scores()
@@ -439,21 +393,12 @@ bool Config::clear_scores()
     int clear = 0;
 
     // Remove XML files if they exist
-#ifdef NSPIRE
-    clear += remove(std::string(FILENAME_SCORES).append(".xml.tns").c_str());
-    clear += remove(std::string(FILENAME_SCORES).append("_jap.xml.tns").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append(".xml.tns").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append("_jap.xml.tns").c_str());
-    clear += remove(std::string(FILENAME_CONT).append(".xml.tns").c_str());
-    clear += remove(std::string(FILENAME_CONT).append("_jap.xml.tns").c_str());
-#else
     clear += remove(std::string(FILENAME_SCORES).append(".xml").c_str());
     clear += remove(std::string(FILENAME_SCORES).append("_jap.xml").c_str());
     clear += remove(std::string(FILENAME_TTRIAL).append(".xml").c_str());
     clear += remove(std::string(FILENAME_TTRIAL).append("_jap.xml").c_str());
     clear += remove(std::string(FILENAME_CONT).append(".xml").c_str());
     clear += remove(std::string(FILENAME_CONT).append("_jap.xml").c_str());
-#endif
 
     // remove returns 0 on success
     return clear == 6;

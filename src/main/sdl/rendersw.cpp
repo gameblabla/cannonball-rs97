@@ -10,14 +10,6 @@
 
 #include <iostream>
 
-#ifdef DREAMCAST
-#include <cstring>
-#include <malloc.h>
-#include <arch/types.h>
-#include <kos/thread.h>
-#include <arch/spinlock.h>
-#endif
-
 #include "rendersw.hpp"
 #include "frontend/config.hpp"
 
@@ -98,25 +90,18 @@ bool RenderSW::init(int src_width, int src_height,
     else
     {
         this->video_mode = video_settings_t::MODE_WINDOW;
-   
+       
         scale_factor  = scale;
+
         scn_width  = src_width  * scale_factor;
         scn_height = src_height * scale_factor;
 
         // As we're windowed this is just the same
         dst_width  = scn_width;
         dst_height = scn_height;
-#ifdef GCW
-        SDL_ShowCursor(false);
-#else
+        
         SDL_ShowCursor(true);
-#endif
     }
-    
-#ifdef GCW
-	    screen_xoff = 0;
-        screen_yoff = 8;
-#else
 
     // If we're not stretching the screen, centre the image
     if (video_mode != video_settings_t::MODE_STRETCH)
@@ -135,12 +120,9 @@ bool RenderSW::init(int src_width, int src_height,
         screen_xoff = 0;
         screen_yoff = 0;
     }
-    
-#endif
 
     //int bpp = info->vfmt->BitsPerPixel;
-    const int bpp = 16;
-
+    const int bpp = 32;
     const int available = SDL_VideoModeOK(scn_width, scn_height, bpp, flags);
 
     // Frees (Deletes) existing surface
@@ -172,7 +154,7 @@ bool RenderSW::init(int src_width, int src_height,
     if (scanlines)
     {
         if (scan_pixels) delete[] scan_pixels;
-        scan_pixels = new uint32_t[(src_width ) * (src_height)];
+        scan_pixels = new uint32_t[(src_width * 2) * (src_height * 2)];
     }
 
     if (pix)
@@ -205,13 +187,6 @@ bool RenderSW::finalize_frame()
 void RenderSW::draw_frame(uint16_t* pixels)
 {
     // Do Scaling
-#ifdef GCW
-        uint32_t* spix = screen_pixels;
-    
-        // Lookup real RGB value from rgb array for backbuffer
-        for (int i = 0; i < (src_width * src_height); i++)
-            *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
-#else
     if (scale_factor != 1)
     {
         uint32_t* pixx = pix;
@@ -252,7 +227,6 @@ void RenderSW::draw_frame(uint16_t* pixels)
         for (int i = 0; i < (src_width * src_height); i++)
             *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
-#endif
 
     // Example: Set the pixel at 10,10 to red
     //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
@@ -262,7 +236,6 @@ void RenderSW::draw_frame(uint16_t* pixels)
 // Fastest scaling algorithm. Scales proportionally.
 void RenderSW::scalex(uint32_t* src, const int srcwid, const int srchgt, uint32_t* dest, const int scale)
 {
-#ifndef GCW
     const int destwid = srcwid * scale;
 
     for (int y = 0; y < srchgt; y++)
@@ -286,7 +259,6 @@ void RenderSW::scalex(uint32_t* src, const int srcwid, const int srchgt, uint32_
             dest += destwid;
         }
     }
-#endif
 }
 
 /**
@@ -308,7 +280,6 @@ void RenderSW::scalex(uint32_t* src, const int srcwid, const int srchgt, uint32_
 void RenderSW::scale( uint32_t* src, int srcwid, int srchgt, 
                       uint32_t* dst, int dstwid, int dsthgt)
 {
-#ifndef GCW
     int xstep = (srcwid << 16) / dstwid; // calculate distance (in source) between
     int ystep = (srchgt << 16) / dsthgt; // pixels (in dest)
     int srcy  = 0; // y-cordinate in source image
@@ -339,7 +310,6 @@ void RenderSW::scale( uint32_t* src, int srcwid, int srchgt,
         src += ((srcy >> 16) * srcwid); // and possibly to the next row.
         srcy &= 0xffff;                 // set up the y-coordinate between 0 and 1
     }
-#endif
 }
 
 /*****************************************************************************
@@ -380,7 +350,6 @@ void RenderSW::scale( uint32_t* src, int srcwid, int srchgt,
 void RenderSW::scanlines_32bpp(uint32_t* src, const int width, const int height, 
                                uint32_t* dst, int percent, bool interpolate)
 {
-#ifndef GCW
     const int dst_width1 = width << 1;
     const int dst_width2 = width << 2;
     
@@ -462,5 +431,4 @@ void RenderSW::scanlines_32bpp(uint32_t* src, const int width, const int height,
             pBuf += dst_width2;
         }
     }
-#endif
 }

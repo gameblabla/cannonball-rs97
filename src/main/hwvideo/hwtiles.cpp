@@ -1,7 +1,9 @@
+#include <cstring> // memcpy
 #include "globals.hpp"
 #include "romloader.hpp"
 #include "hwvideo/hwtiles.hpp"
 #include "frontend/config.hpp"
+#include <cstring>
 
 /***************************************************************************
     Video Emulation: OutRun Tilemap Hardware.
@@ -10,18 +12,7 @@
     Copyright Aaron Giles.
     All rights reserved.
 ***************************************************************************/
-#include <algorithm>
-#include <cstring>
-#ifndef DREAMCAST
-#include <memory.h>
-#endif
 
-#ifdef DREAMCAST
-#include <malloc.h>
-#include <arch/types.h>
-#include <kos/thread.h>
-#include <arch/spinlock.h>
-#endif
 /*******************************************************************************************
  *
  *  System 16B-style tilemaps

@@ -188,7 +188,7 @@ void HWRoad::decode_road(const uint8_t* src_road)
     }
 }
 
-// Writes go to RAM, but we read from the RAM Buffer  defined Inline...
+// Writes go to RAM, but we read from the RAM Buffer.
 void HWRoad::write16(uint32_t adr, const uint16_t data)
 {
     ram[(adr >> 1) & 0x7FF] = data;
@@ -209,7 +209,6 @@ void HWRoad::write32(uint32_t* adr, const uint32_t data)
     *adr += 4;
 }
 
-
 uint16_t HWRoad::read_road_control()
 {
     uint32_t *src = (uint32_t *)ram;
@@ -226,12 +225,10 @@ uint16_t HWRoad::read_road_control()
     return 0xffff;
 }
 
-/* Inlined... see .hpp*/
 void HWRoad::write_road_control(const uint8_t road_control)
 {
     this->road_control = road_control;
 }
-
 
 // ------------------------------------------------------------------------------------------------
 // Road Rendering: Lores Version
@@ -286,7 +283,6 @@ void HWRoad::render_background_lores(uint16_t* pixels)
             
             for (x = 0; x < config.s16_width; x++)
                 *(pPixel)++ = color;
-     
         }
     }
 }
@@ -349,7 +345,6 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
 
         // Shift road dependent on whether we are in widescreen mode or not
         uint16_t s16_x = 0x5f8 + config.s16_x_off;
-        /*uint32_t* pPixel = pixels + (y * config.s16_width);*/
 
         // draw the road
         switch (control) 
@@ -360,9 +355,8 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
-                    /*int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
-                    *(pPixel++) = color_table[0x00 + pix0];*/
-     *(pPixel++) = color_table[0x00 + (hpos0 < 0x200) ? src0[hpos0] : 3];
+                    int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
+                    pPixel[x] = color_table[0x00 + pix0];
                     hpos0 = (hpos0 + 1) & 0xfff;
                 }
                 break;
@@ -375,9 +369,9 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     if (((priority_map[0][pix0] >> pix1) & 1) != 0)
-                        *(pPixel++) = color_table[0x10 + pix1];
+                        pPixel[x] = color_table[0x10 + pix1];
                     else
-                        *(pPixel++) = color_table[0x00 + pix0];
+                        pPixel[x] = color_table[0x00 + pix0];
 
                     hpos0 = (hpos0 + 1) & 0xfff;
                     hpos1 = (hpos1 + 1) & 0xfff;
@@ -392,9 +386,9 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
                     if (((priority_map[1][pix0] >> pix1) & 1) != 0)
-                        *(pPixel++) = color_table[0x10 + pix1];
+                        pPixel[x] = color_table[0x10 + pix1];
                     else
-                        *(pPixel++) = color_table[0x00 + pix0];
+                        pPixel[x] = color_table[0x00 + pix0];
 
                     hpos0 = (hpos0 + 1) & 0xfff;
                     hpos1 = (hpos1 + 1) & 0xfff;
@@ -407,9 +401,8 @@ void HWRoad::render_foreground_lores(uint16_t* pixels)
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
                 for (x = 0; x < config.s16_width; x++) 
                 {
-                    /*int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
-                    *(pPixel++) = color_table[0x10 + pix1];*/
-     *(pPixel++) = color_table[0x10 + (hpos1 < 0x200) ? src1[hpos1] : 3];
+                    int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
+                    pPixel[x] = color_table[0x10 + pix1];
                     hpos1 = (hpos1 + 1) & 0xfff;
                 }
                 break;
@@ -578,7 +571,7 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
 
         // Shift road dependent on whether we are in widescreen mode or not
         uint16_t s16_x = 0x5f8 + config.s16_x_off;
-        uint16_t* pPixel = pixels + (y * config.s16_width);
+        uint16_t* const pPixel = pixels + (y * config.s16_width);
 
         // draw the road
         switch (road_control & 3)
@@ -587,12 +580,11 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                 if (data0 & 0x800)
                     continue;
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x+=2) 
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
-                    *(pPixel++) = color_table[0x00 + pix0];
-                    *(pPixel++) = color_table[0x00 + pix0];
-//                    if (x & 1)
+                    pPixel[x] = color_table[0x00 + pix0];
+                    if (x & 1)
                         hpos0 = (hpos0 + 1) & 0xfff;
                 }
                 break;
@@ -600,46 +592,40 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
             case 1:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x+=2) 
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
-                    if (((priority_map[0][pix0] >> pix1) & 1) != 0) {
-                        *(pPixel++) = color_table[0x10 + pix1];
-                        *(pPixel++) = color_table[0x10 + pix1];
-                    } else {
-                        *(pPixel++) = color_table[0x10 + pix0];
-                        *(pPixel++) = color_table[0x10 + pix0];
- }
+                    if (((priority_map[0][pix0] >> pix1) & 1) != 0)
+                        pPixel[x] = color_table[0x10 + pix1];
+                    else
+                        pPixel[x] = color_table[0x00 + pix0];
 
-                    /*if (x & 1)
-                    {*/
+                    if (x & 1)
+                    {
                         hpos0 = (hpos0 + 1) & 0xfff;
                         hpos1 = (hpos1 + 1) & 0xfff;
-                    /*}*/
+                    }
                 }
                 break;
 
             case 2:
                 hpos0 = (hpos0 - (s16_x + x_offset)) & 0xfff;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x+=2) 
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix0 = (hpos0 < 0x200) ? src0[hpos0] : 3;
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
-                    if (((priority_map[1][pix0] >> pix1) & 1) != 0) {
-                        *(pPixel++) = color_table[0x10 + pix1];
-                        *(pPixel++) = color_table[0x10 + pix1];
-                    } else {
-                        *(pPixel++) = color_table[0x00 + pix0];
-                        *(pPixel++) = color_table[0x00 + pix0];
- }
+                    if (((priority_map[1][pix0] >> pix1) & 1) != 0)
+                        pPixel[x] = color_table[0x10 + pix1];
+                    else
+                        pPixel[x] = color_table[0x00 + pix0];
                       
-                    /*if (x & 1)
-                    {*/
+                    if (x & 1)
+                    {
                         hpos0 = (hpos0 + 1) & 0xfff;
                         hpos1 = (hpos1 + 1) & 0xfff;
-                    /*}*/
+                    }
                 }
                 break;
 
@@ -647,12 +633,11 @@ void HWRoad::render_foreground_hires(uint16_t* pixels)
                 if (data1 & 0x800)
                     continue;
                 hpos1 = (hpos1 - (s16_x + x_offset)) & 0xfff;
-                for (x = 0; x < config.s16_width; x+=2) 
+                for (x = 0; x < config.s16_width; x++) 
                 {
                     int pix1 = (hpos1 < 0x200) ? src1[hpos1] : 3;
-                    *(pPixel++) = color_table[0x10 + pix1];                   
-                    *(pPixel++) = color_table[0x10 + pix1];                   
-                    /*if (x & 1)*/
+                    pPixel[x] = color_table[0x10 + pix1];                   
+                    if (x & 1)
                         hpos1 = (hpos1 + 1) & 0xfff;
                 }
                 break;

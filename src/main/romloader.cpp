@@ -42,7 +42,7 @@ void RomLoader::unload(void)
 
 int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
-
+	char path[256];
 #ifdef __APPLE__    
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
@@ -57,28 +57,10 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     chdir(bundlepath);
 #endif
 
-
-#ifdef GCW
-    std::string path = "/media/data/local/home/.cannonball/roms/";
-#endif
-
-#ifdef NSPIRE
-    std::string path = "/documents/outrun/roms/";
-#endif
-
-#ifdef DREAMCAST
-    std::string path = "/cd/roms/";
-#endif
-
-#if !defined(GCW) && !defined(NSPIRE) && !defined(DREAMCAST)
-    std::string path = "roms/";
-#endif
-
-    path += std::string(filename);
-    
+	snprintf(path, sizeof(path), "%s/.cannonball/roms/%s", getenv("HOME"), filename);
 
     // Open rom file
-    std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
+    std::ifstream src(path, std::ios::in | std::ios::binary);
     if (!src)
     {
         std::cout << "cannot open rom: " << filename << std::endl;
@@ -116,6 +98,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 // Load Binary File (LayOut Levels, Tilemap Data etc.)
 int RomLoader::load_binary(const char* filename)
 {
+	char path[256];
 #ifdef __APPLE__    
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
@@ -130,10 +113,12 @@ int RomLoader::load_binary(const char* filename)
     chdir(bundlepath);
 #endif
 
+	snprintf(path, sizeof(path), "%s/.cannonball/roms/%s", getenv("HOME"), filename);
+
     // --------------------------------------------------------------------------------------------
     // Read LayOut Data File
     // --------------------------------------------------------------------------------------------
-    std::ifstream src(filename, std::ios::in | std::ios::binary);
+    std::ifstream src(path, std::ios::in | std::ios::binary);
     if (!src)
     {
         std::cout << "cannot open file: " << filename << std::endl;

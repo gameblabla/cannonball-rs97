@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <cstdlib> // abs
-#include "sdl/input.hpp"
+#include "sdl2/input.hpp"
 
 Input input;
 
@@ -74,13 +74,13 @@ void Input::frame_done()
     memcpy(&keys_old, &keys, sizeof(keys));
 }
 
-void Input::handle_key_down(SDL_keysym* keysym)
+void Input::handle_key_down(SDL_Keysym* keysym)
 {
     key_press = keysym->sym;
     handle_key(key_press, true);
 }
 
-void Input::handle_key_up(SDL_keysym* keysym)
+void Input::handle_key_up(SDL_Keysym* keysym)
 {
     handle_key(keysym->sym, false);
 }

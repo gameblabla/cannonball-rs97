@@ -15,16 +15,12 @@ bool RenderBase::sdl_screen_size()
 {
     if (orig_width == 0 || orig_height == 0)
     {
-        const SDL_VideoInfo* info = SDL_GetVideoInfo();
+	SDL_DisplayMode info;
 
-        if (!info)
-        {
-            std::cerr << "Video query failed: " << SDL_GetError() << std::endl;
-            return false;
-        }
+	SDL_GetCurrentDisplayMode(0, &info);
         
-        orig_width  = info->current_w; 
-        orig_height = info->current_h;
+        orig_width  = info.w; 
+        orig_height = info.h;
     }
 
     scn_width  = orig_width;

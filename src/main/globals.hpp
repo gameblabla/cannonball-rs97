@@ -7,11 +7,7 @@
 // ------------------------------------------------------------------------------------------------
 
 // Comment out to disable SDL specific sound code
-#ifdef NSPIRE
-#define COMPILE_SOUND_CODE 0
-#else
 #define COMPILE_SOUND_CODE 1
-#endif
 
 // ------------------------------------------------------------------------------------------------
 // Debug Settings

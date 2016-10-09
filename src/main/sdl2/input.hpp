@@ -62,8 +62,8 @@ public:
     void init(int, int*, int*, const int, int*, int*);
     void close();
 
-    void handle_key_up(SDL_keysym*);
-    void handle_key_down(SDL_keysym*);
+    void handle_key_up(SDL_Keysym*);
+    void handle_key_down(SDL_Keysym*);
     void handle_joy_axis(SDL_JoyAxisEvent*);
     void handle_joy_down(SDL_JoyButtonEvent*);
     void handle_joy_up(SDL_JoyButtonEvent*);

@@ -98,11 +98,7 @@ const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 const static char* ENTRY_GEAR       = "GEAR ";
 const static char* ENTRY_ANALOG     = "ANALOG ";
 const static char* ENTRY_REDEFJOY   = "REDEFINE GAMEPAD";
-#ifdef GCW
-const static char* ENTRY_REDEFKEY   = "REDEFINE BUTTONS";
-#else
 const static char* ENTRY_REDEFKEY   = "REDEFINE KEYS";
-#endif
 const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
@@ -175,14 +171,11 @@ void Menu::populate()
     menu_cannonboard.push_back(ENTRY_C_CRT);
     menu_cannonboard.push_back(ENTRY_BACK);
 
-
     menu_video.push_back(ENTRY_FPS);
-#ifndef GCW
     menu_video.push_back(ENTRY_FULLSCREEN);
     menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_HIRES);
     menu_video.push_back(ENTRY_SCALE);
-#endif
     menu_video.push_back(ENTRY_SCANLINES);
     menu_video.push_back(ENTRY_BACK);
 
@@ -196,13 +189,9 @@ void Menu::populate()
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
-#ifndef GCW
     if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
-#endif
     menu_controls.push_back(ENTRY_REDEFKEY);
-#ifndef GCW
     if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
-#endif
     menu_controls.push_back(ENTRY_DSTEER);
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
@@ -602,7 +591,6 @@ void Menu::tick_menu()
         }
         else if (menu_selected == &menu_video)
         {
-
             if (SELECTED(ENTRY_FULLSCREEN))
             {
                 if (++config.video.mode > video_settings_t::MODE_STRETCH)
