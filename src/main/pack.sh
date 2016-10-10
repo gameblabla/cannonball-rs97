@@ -1,1 +1,1 @@
-mksquashfs ./opk canon.opk -all-root -noappend -no-exports -no-xattrs
+mksquashfs ./opk cannonball.opk -all-root -noappend -no-exports -no-xattrs

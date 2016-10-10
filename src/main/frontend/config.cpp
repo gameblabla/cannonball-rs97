@@ -130,11 +130,11 @@ void Config::load(const std::string &filename)
     controls.keyconfig[3]  = pt_config.get("controls.keyconfig.right", 1073741903);
     controls.keyconfig[4]  = pt_config.get("controls.keyconfig.acc",   1073742048);
     controls.keyconfig[5]  = pt_config.get("controls.keyconfig.brake", 1073742050);
-    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear1", 1073742049);
+    controls.keyconfig[6]  = pt_config.get("controls.keyconfig.gear1", 9);
     controls.keyconfig[7]  = pt_config.get("controls.keyconfig.gear2", 32);
     controls.keyconfig[8]  = pt_config.get("controls.keyconfig.start", 13);
     controls.keyconfig[9]  = pt_config.get("controls.keyconfig.coin",  32);
-    controls.keyconfig[10] = pt_config.get("controls.keyconfig.menu",  9);
+    controls.keyconfig[10] = pt_config.get("controls.keyconfig.menu",  27);
     controls.keyconfig[11] = pt_config.get("controls.keyconfig.view",  8);
     
     controls.padconfig[0]  = pt_config.get("controls.padconfig.acc",   0);
