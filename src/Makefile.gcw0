@@ -3,7 +3,7 @@ CXX = $(TOOLCHAIN)/usr/bin/mipsel-linux-g++
 CC = $(TOOLCHAIN)/usr/bin/mipsel-linux-gcc
 LD = $(TOOLCHAIN)/usr/bin/mipsel-linux-g++
 
-CFLAGS = -Ofast -mips32r2 -mmxu -Wall $(FFLAGS) `sdl2-config --cflags` -DSDL2 -DWITH_OPENGLES
+CFLAGS = -Ofast -mips32r2 -Wall $(FFLAGS) `sdl2-config --cflags` -DSDL2 -DWITH_OPENGLES
 FFLAGS = -I./ -I./engine/audio -I./src -I./hwvideo -I./cannonboard -I./engine -I./directx -I./frontend -I./hwaudio -I./sdl2
 LDFLAGS = -Wl,--as-needed -lSDL2 -lm -lboost_filesystem -lGLESv2
 OUTPUT = cannonbal
@@ -20,6 +20,5 @@ cannonball:	${OBJS}
 		$(CXX) -o $@ $+ ${LDFLAGS}
 	
 clean:
-	rm src/*.o
-	rm WRAPPER/*.o
+	rm *.o src/*.o engine/audio/*.o engine/*.o hwvideo/*.o cannonboard/*.o engine/*.o directx/*.o frontend/*.o hwaudio/*.o sdl/*.o sdl2/*.o
 	rm ${OUTPUT}

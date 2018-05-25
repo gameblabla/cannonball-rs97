@@ -12,6 +12,9 @@
 #include <cstdlib> // abs
 #include "sdl2/input.hpp"
 
+int CENTRE = 0x80;
+int DIGITAL_DEAD = 3000;
+
 Input input;
 
 Input::Input(void)

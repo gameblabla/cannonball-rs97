@@ -96,9 +96,10 @@ const static char* ENTRY_MUSICTEST  = "MUSIC TEST";
 
 // Controls Menu
 const static char* ENTRY_GEAR       = "GEAR ";
-const static char* ENTRY_ANALOG     = "ANALOG ";
+//const static char* ENTRY_ANALOG     = "ANALOG ";
 const static char* ENTRY_REDEFJOY   = "REDEFINE GAMEPAD";
 const static char* ENTRY_REDEFKEY   = "REDEFINE KEYS";
+const static char* ENTRY_ANALOGSEN  = "ANALOG SENSITIVITY ";
 const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
@@ -189,9 +190,10 @@ void Menu::populate()
     menu_sound.push_back(ENTRY_BACK);
 
     menu_controls.push_back(ENTRY_GEAR);
-    if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+	menu_controls.push_back(ENTRY_ANALOGSEN);
+    //if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
     menu_controls.push_back(ENTRY_REDEFKEY);
-    if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
+   // if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
     menu_controls.push_back(ENTRY_DSTEER);
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
@@ -682,12 +684,30 @@ void Menu::tick_menu()
                 if (++config.controls.gear > config.controls.GEAR_AUTO)
                     config.controls.gear = config.controls.GEAR_BUTTON;
             }
-            else if (SELECTED(ENTRY_ANALOG))
+            else if (SELECTED(ENTRY_ANALOGSEN))
+            {
+                if (++config.controls.analogsen > 2)
+                    config.controls.analogsen = 0;
+				
+				switch(config.controls.analogsen)
+				{
+					default:
+						CENTRE = 0x80;
+					break;
+					case 1:
+						CENTRE = 0x90;
+					break;
+					case 2:
+						CENTRE = 0xB0;
+					break;
+				}
+            }
+           /* else if (SELECTED(ENTRY_ANALOG))
             {
                 if (++config.controls.analog == 3)
                     config.controls.analog = 0;
                 input.analog = config.controls.analog;
-            }
+            }*/
             else if (SELECTED(ENTRY_REDEFKEY))
             {
                 display_message("PRESS MENU TO END AT ANY STAGE");
@@ -863,15 +883,19 @@ void Menu::refresh_menu()
                 else if (config.controls.gear == config.controls.GEAR_AUTO)     s = "AUTOMATIC";
                 set_menu_text(ENTRY_GEAR, s);
             }
-            else if (SELECTED(ENTRY_ANALOG))
+            /*else if (SELECTED(ENTRY_ANALOG))
             {
                 if (config.controls.analog == 0)      s = "OFF";
                 else if (config.controls.analog == 1) s = "ON";
                 else if (config.controls.analog == 2) s = "ON WHEEL ONLY";
                 set_menu_text(ENTRY_ANALOG, s);
-            }
+            }*/
             else if (SELECTED(ENTRY_DSTEER))
                 set_menu_text(ENTRY_DSTEER, Utils::to_string(config.controls.steer_speed));
+            else if (SELECTED(ENTRY_ANALOGSEN))
+            {
+                set_menu_text(ENTRY_ANALOGSEN, Utils::to_string(config.controls.analogsen));
+            }
             else if (SELECTED(ENTRY_DPEDAL))
                 set_menu_text(ENTRY_DPEDAL, Utils::to_string(config.controls.pedal_speed));
         }

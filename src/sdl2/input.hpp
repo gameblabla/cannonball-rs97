@@ -7,10 +7,15 @@
     Copyright Chris White.
     See license.txt for more details.
 ***************************************************************************/
+#ifndef _H_INPUT
+#define _H_INPUT
 
 #pragma once
 
 #include <SDL.h>
+
+extern int CENTRE;
+extern int DIGITAL_DEAD;
 
 class Input
 {
@@ -95,3 +100,5 @@ private:
 };
 
 extern Input input;
+
+#endif

@@ -75,7 +75,7 @@ struct controls_settings_t
     int analog;        // Use analog controls
     int axis[3];       // Analog Axis
     int asettings[3];  // Analog Settings
-
+	int analogsen;
     int haptic;        // Force Feedback Enabled
     int max_force;
     int min_force;
