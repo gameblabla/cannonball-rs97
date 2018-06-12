@@ -8,9 +8,14 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#ifndef INPUT_H_
+#define INPUT_H_
 #pragma once
 
 #include <SDL.h>
+
+extern int CENTRE;
+extern int DIGITAL_DEAD;
 
 class Input
 {
@@ -73,10 +78,6 @@ public:
     bool has_pressed(presses p);
 
 private:
-    static const int CENTRE = 0x80;
-
-    // Digital Dead Zone
-    static const int DIGITAL_DEAD = 3200;
 
     // SDL Joystick / Keypad
     SDL_Joystick *stick;
@@ -95,3 +96,4 @@ private:
 };
 
 extern Input input;
+#endif

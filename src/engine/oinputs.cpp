@@ -14,7 +14,6 @@
 #include "engine/oinputs.hpp"
 #include "engine/ostats.hpp"
 
-#include "cannonboard/interface.hpp"
 
 OInputs oinputs;
 
@@ -52,53 +51,8 @@ void OInputs::init()
 
 void OInputs::tick(Packet* packet)
 {
-    // CannonBoard Input
-    if (packet != NULL)
-    {
-        input_steering = packet->ai2;
-        input_acc      = packet->ai0;
-        input_brake    = packet->ai3;
-            
-        if (config.controls.gear != config.controls.GEAR_AUTO)
-            gear       = (packet->di1 & 0x10) == 0;
-
-        // Coin Chutes
-        coin1 = (packet->di1 & 0x40) != 0;
-        coin2 = (packet->di1 & 0x80) != 0;
-
-        // Service
-        input.keys[Input::COIN]  = (packet->di1 & 0x04) != 0;
-        // Start
-        input.keys[Input::START] = (packet->di1 & 0x08) != 0;
-    }
-
-    // Standard PC Keyboard/Joypad/Wheel Input
-    else
-    {
-        // Digital Controls: Simulate Analog
-        if (!input.analog || !input.gamepad)
-        {
-            digital_steering();
-            digital_pedals();
-        }
-        // Analog Controls
-        else
-        {
-            input_steering = input.a_wheel;
-
-            // Analog Pedals
-            if (input.analog == 1)
-            {
-                input_acc      = input.a_accel;
-                input_brake    = input.a_brake;
-            }
-            // Digital Pedals
-            else
-            {
-                digital_pedals();
-            }
-        }
-    }
+	digital_steering();
+	digital_pedals();
 }
 // DIGITAL CONTROLS: Digital Simulation of analog steering
 void OInputs::digital_steering()
@@ -176,8 +130,6 @@ void OInputs::digital_pedals()
 
 void OInputs::do_gear()
 {
-    if (config.cannonboard.enabled)
-        return;
 
     // ------------------------------------------------------------------------
     // GEAR SHIFT

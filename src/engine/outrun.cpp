@@ -31,7 +31,6 @@
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/outils.hpp"
-#include "cannonboard/interface.hpp"
 
 Outrun outrun;
 
@@ -75,11 +74,7 @@ void Outrun::init()
 
     tick_counter = 0;
 
-    // CannonBoard Config: When Used in original cabinet
-    if (config.cannonboard.enabled && config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
-        init_motor_calibration();
-    else
-        boot();
+    boot();
 }
 
 void Outrun::boot()
@@ -266,44 +261,8 @@ void Outrun::jump_table(Packet* packet)
     // Motor Code
     if (tick_frame)
     {
-        if (game_state == GS_CALIBRATE_MOTOR)
-        {
-            if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
-            {
-                video.enabled     = false;
-                video.clear_text_ram();
-                oroad.horizon_set = 0;
-                boot();
-            }
-        }
-        else
-        {
-            if (config.controls.haptic && config.controls.analog)
+       if (config.controls.haptic && config.controls.analog)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            else if (config.cannonboard.enabled)
-                outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.cannonboard.cabinet);
-        }
-    }
-
-    if (config.cannonboard.enabled && config.cannonboard.debug)
-    {
-        uint16_t x = 1;
-        uint16_t y = 5;
-        ohud.blit_text_new(x, y, "AI0 ACCEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai0).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI2 WHEEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI3 BRAKE");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai3).c_str(), OHud::PINK); x += 13;
-      
-        x = 1;
-        y = 6;
-        ohud.blit_text_new(x, y, "AI1 MOTOR"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC OUT");    ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->hw_motor_control).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC IN");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->mci).c_str(), OHud::PINK);
-
-        x = 1;
-        y = 7;
-        ohud.blit_text_new(x, y, "DI1");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DI2");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DIG OUT"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->dig_out).c_str(), OHud::PINK); x += 13;
     }
 }
 
@@ -742,7 +701,7 @@ bool Outrun::decrement_timers()
 
 void Outrun::init_motor_calibration()
 {
-    otiles.init();
+   /* otiles.init();
     opalette.init();
     oinputs.init();
     outputs->init();
@@ -767,7 +726,7 @@ void Outrun::init_motor_calibration()
     video.write_pal32(&dst, PAL_SERVICE[0]);
     video.write_pal32(&dst, PAL_SERVICE[1]);
     video.write_pal32(&dst, PAL_SERVICE[2]);
-    video.write_pal32(&dst, PAL_SERVICE[3]);
+    video.write_pal32(&dst, PAL_SERVICE[3]);*/
 }
 
 // -------------------------------------------------------------------------------

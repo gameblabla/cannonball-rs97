@@ -54,10 +54,8 @@ private:
 
     // Number of seconds to show message for
     const static int32_t MESSAGE_TIME = 5;
-
-    // Message text
-    std::string msg;
-
+    
+    
     // Cursor
     int16_t cursor;
 
@@ -66,34 +64,8 @@ private:
 
     // Used to control the horizon pan effect
     uint16_t horizon_pos;
-
-    std::vector<std::string>* menu_selected;
-    std::vector<std::string> menu_main;
-    std::vector<std::string> menu_gamemodes;
-    std::vector<std::string> menu_cont;
-    std::vector<std::string> menu_timetrial;
-    std::vector<std::string> menu_about;
-    std::vector<std::string> menu_settings;
-    std::vector<std::string> menu_cannonboard;
-    std::vector<std::string> menu_video;
-    std::vector<std::string> menu_sound;
-    std::vector<std::string> menu_controls;
-    std::vector<std::string> menu_engine;
-    std::vector<std::string> menu_musictest;
-
-    std::vector<std::string> text_redefine;
     
     void tick_ui();
     void draw_menu_options();
-    void draw_text(std::string);
     void tick_menu();
-    void set_menu(std::vector<std::string>*);
-    void refresh_menu();
-    void set_menu_text(std::string s1, std::string s2);
-    void redefine_keyboard();
-    void redefine_joystick();
-    void display_message(std::string);
-    bool check_jap_roms();
-    void restart_video();
-    void start_game(int mode, int settings = 0);
 };

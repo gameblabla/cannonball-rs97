@@ -31,7 +31,7 @@ private:
     uint32_t* scan_pixels;
 
     // Pixel Conversion
-    uint32_t* pix;
+    uint16_t* pix;
 
     // Scale the screen
     int scale_factor;

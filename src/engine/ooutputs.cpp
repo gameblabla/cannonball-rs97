@@ -27,7 +27,6 @@
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
-#include "directx/ffeedback.hpp"
 
 OOutputs::OOutputs(void)
 {
@@ -77,12 +76,6 @@ void OOutputs::tick(int MODE, int16_t input_motor, int16_t cabinet_type)
 {
     switch (MODE)
     {
-        // Force Feedback Steering Wheels
-        case MODE_FFEEDBACK:
-            do_motors(MODE, input_motor);   // Use X-Position of wheel instead of motor position
-            motor_output(hw_motor_control); // Force Feedback Handling
-            break;
-
         // CannonBoard: Real Cabinet
         case MODE_CABINET:
             if (cabinet_type == config.cannonboard.CABINET_MOVING)
@@ -774,22 +767,6 @@ void OOutputs::done()
     }
 }
 
-// Send output commands to motor hardware
-// This is the equivalent to writing to register 0x140003
-void OOutputs::motor_output(uint8_t cmd)
-{
-    if (cmd == MOTOR_OFF || cmd == MOTOR_CENTRE)
-        return;
-
-    int8_t force = 0;
-
-    if (cmd < MOTOR_CENTRE)      // left
-        force = cmd - 1;
-    else if (cmd > MOTOR_CENTRE) // right
-        force = 15 - cmd;
-
-    forcefeedback::set(cmd, force);
-}
 
 // ------------------------------------------------------------------------------------------------
 // Deluxe Upright: Steering Wheel Movement

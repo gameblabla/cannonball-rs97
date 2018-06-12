@@ -14,11 +14,6 @@
 
 // SDL Library
 #include <SDL.h>
-#ifndef SDL2
-#pragma comment(lib, "SDLmain.lib") // Replace main with SDL_main
-#endif
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "glu32.lib")
 
 // SDL Specific Code
 #if defined SDL2
@@ -40,14 +35,9 @@
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
 
-#include "cannonboard/interface.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 #include "engine/omusic.hpp"
-
-// Direct X Haptic Support.
-// Fine to include on non-windows builds as dummy functions used.
-#include "directx/ffeedback.hpp"
 
 // Initialize Shared Variables
 using namespace cannonball;
@@ -70,7 +60,7 @@ Audio cannonball::audio;
 #endif
 
 Menu* menu;
-Interface cannonboard;
+
 
 static void quit_func(int code)
 {
@@ -78,7 +68,6 @@ static void quit_func(int code)
     audio.stop_audio();
 #endif
     input.close();
-    forcefeedback::close();
     delete menu;
     SDL_Quit();
     exit(code);
@@ -94,27 +83,11 @@ static void process_events(void)
         switch(event.type)
         {
             case SDL_KEYDOWN:
-                // Handle key presses.
-                /*if (event.key.keysym.sym == SDLK_ESCAPE)
-                    state = STATE_QUIT;
-                else*/
                     input.handle_key_down(&event.key.keysym);
                 break;
 
             case SDL_KEYUP:
                 input.handle_key_up(&event.key.keysym);
-                break;
-
-            case SDL_JOYAXISMOTION:
-                input.handle_joy_axis(&event.jaxis);
-                break;
-
-            case SDL_JOYBUTTONDOWN:
-                input.handle_joy_down(&event.jbutton);
-                break;
-
-            case SDL_JOYBUTTONUP:
-                input.handle_joy_up(&event.jbutton);
                 break;
 
             case SDL_QUIT:
@@ -132,9 +105,6 @@ static void tick()
 {
     frame++;
 
-    // Get CannonBoard Packet Data
-    Packet* packet = config.cannonboard.enabled ? cannonboard.get_packet() : NULL;
-
     // Non standard FPS.
     // Determine whether to tick the current frame.
     if (config.fps != 30)
@@ -147,8 +117,7 @@ static void tick()
 
     process_events();
 
-    if (tick_frame)
-        oinputs.tick(packet); // Do Controls
+	oinputs.tick(NULL); // Do Controls
     oinputs.do_gear();        // Digital Gear
 
     switch (state)
@@ -162,11 +131,11 @@ static void tick()
                 pause_engine = !pause_engine;
 
             if (input.has_pressed(Input::MENU))
-                state = STATE_INIT_MENU;
+                state = STATE_QUIT;
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
-                outrun.tick(packet, tick_frame);
+                outrun.tick(NULL, tick_frame);
                 input.frame_done(); // Denote keys read
 
                 #ifdef COMPILE_SOUND_CODE
@@ -196,19 +165,6 @@ static void tick()
             }
             break;
 
-        case STATE_MENU:
-        {
-            menu->tick(packet);
-            input.frame_done();
-            #ifdef COMPILE_SOUND_CODE
-            // Tick audio program code
-            osoundint.tick();
-            // Tick SDL Audio
-            audio.tick();
-            #endif
-        }
-        break;
-
         case STATE_INIT_MENU:
             oinputs.init();
             outrun.outputs->init();
@@ -216,9 +172,6 @@ static void tick()
             state = STATE_MENU;
             break;
     }
-    // Write CannonBoard Outputs
-    if (config.cannonboard.enabled)
-        cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
 
     // Draw SDL Video
     video.draw_frame();  
@@ -226,63 +179,33 @@ static void tick()
 
 static void main_loop()
 {
-    // FPS Counter (If Enabled)
-    Timer fps_count;
-    int frame = 0;
-    fps_count.start();
-
-    // General Frame Timing
-    Timer frame_time;
-    int t;
-    double deltatime  = 0;
-    int deltaintegral = 0;
 
     while (state != STATE_QUIT)
     {
-        frame_time.start();
         tick();
-        #ifdef COMPILE_SOUND_CODE
-        deltatime += (frame_ms * audio.adjust_speed());
-        #else
-        deltatime += frame_ms;
-        #endif
-        deltaintegral  = (int) deltatime;
-        t = frame_time.get_ticks();
-
-        // Cap Frame Rate: Sleep Remaining Frame Time
-        /*if (t < deltatime)
-        {
-            SDL_Delay((Uint32) (deltatime - t));
-        }*/
-        
-        deltatime -= deltaintegral;
-
-        if (config.video.fps_count)
-        {
-            frame++;
-            // One second has elapsed
-            if (fps_count.get_ticks() >= 1000)
-            {
-                fps_counter = frame;
-                frame       = 0;
-                fps_count.start();
-            }
-        }
     }
 
-    quit_func(0);
+	quit_func(0);
 }
 
 int main(int argc, char* argv[])
 {
     // Initialize timer and video systems
-    if( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) == -1 ) 
+    if( SDL_Init(SDL_INIT_VIDEO) == -1 ) 
     { 
         std::cerr << "SDL Initialization Failed: " << SDL_GetError() << std::endl;
         return 1; 
     }
     
 	char homedir[128];
+	#ifdef NOHOME
+	mkdir("./roms", 0755); // create $HOME/.cannonball if it doesn't exist
+	
+	snprintf(FILENAME_CONFIG, sizeof(FILENAME_CONFIG), "./%s", getenv("HOME"), "config.xml");
+	snprintf(FILENAME_SCORES, sizeof(FILENAME_SCORES), "./%s", getenv("HOME"), "hiscores");
+	snprintf(FILENAME_TTRIAL, sizeof(FILENAME_TTRIAL), "./%s", getenv("HOME"), "hiscores_timetrial");
+	snprintf(FILENAME_CONT, sizeof(FILENAME_CONT), "./%s", getenv("HOME"), "hiscores_continuous");
+	#else
 	snprintf(homedir, sizeof(homedir), "%s/.cannonball", getenv("HOME"));
 	mkdir(homedir, 0755); // create $HOME/.cannonball if it doesn't exist
 	snprintf(homedir, sizeof(homedir), "%s/.cannonball/roms", getenv("HOME"));
@@ -292,8 +215,9 @@ int main(int argc, char* argv[])
 	snprintf(FILENAME_SCORES, sizeof(FILENAME_SCORES), "%s/.cannonball/%s", getenv("HOME"), "hiscores");
 	snprintf(FILENAME_TTRIAL, sizeof(FILENAME_TTRIAL), "%s/.cannonball/%s", getenv("HOME"), "hiscores_timetrial");
 	snprintf(FILENAME_CONT, sizeof(FILENAME_CONT), "%s/.cannonball/%s", getenv("HOME"), "hiscores_continuous");
+	#endif
 	
-    menu = new Menu(&cannonboard);
+    menu = new Menu(NULL);
 
     bool loaded = false;
 
@@ -308,9 +232,6 @@ int main(int argc, char* argv[])
     {
         loaded = roms.load_revb_roms();
     }
-
-    //trackloader.set_layout_track("d:/temp.bin");
-    //loaded = roms.load_revb_roms();
 
     if (loaded)
     {
@@ -344,15 +265,6 @@ int main(int argc, char* argv[])
                    config.controls.keyconfig, config.controls.padconfig, 
                    config.controls.analog,    config.controls.axis, config.controls.asettings);
 
-        if (config.controls.haptic) 
-            config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
-        
-        // Initalize CannonBoard (For use in original cabinets)
-        if (config.cannonboard.enabled)
-        {
-            cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
-            cannonboard.start();
-        }
 
         // Populate menus
         menu->populate();

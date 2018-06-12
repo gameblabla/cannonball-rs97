@@ -11,14 +11,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstddef>       // for std::size_t
-#include <boost/crc.hpp> // CRC Checking via Boost library.
-
 #include "stdint.hpp"
 #include "romloader.hpp"
-
-#ifdef __APPLE__
-#include "CoreFoundation/CoreFoundation.h"
-#endif
 
 RomLoader::RomLoader()
 {
@@ -43,20 +37,6 @@ void RomLoader::unload(void)
 int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
 	char path[256];
-#ifdef __APPLE__    
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    char bundlepath[PATH_MAX];
-
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
-    {
-        // error!
-    }
-
-    CFRelease(resourcesURL);
-    chdir(bundlepath);
-#endif
-
 	snprintf(path, sizeof(path), "%s/.cannonball/roms/%s", getenv("HOME"), filename);
 
     // Open rom file
@@ -71,16 +51,6 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     // Read file
     char* buffer = new char[length];
     src.read(buffer, length);
-
-    // Check CRC on file
-    boost::crc_32_type result;
-    result.process_bytes(buffer, (size_t) src.gcount());
-
-    if (expected_crc != result.checksum())
-    {
-        std::cout << std::hex << 
-            filename << " has incorrect checksum.\nExpected: " << expected_crc << " Found: " << result.checksum() << std::endl;
-    }
 
     // Interleave file as necessary
     for (int i = 0; i < length; i++)
@@ -99,19 +69,6 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 int RomLoader::load_binary(const char* filename)
 {
 	char path[256];
-#ifdef __APPLE__    
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    char bundlepath[PATH_MAX];
-
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
-    {
-        // error!
-    }
-
-    CFRelease(resourcesURL);
-    chdir(bundlepath);
-#endif
 
 	snprintf(path, sizeof(path), "%s/.cannonball/roms/%s", getenv("HOME"), filename);
 
